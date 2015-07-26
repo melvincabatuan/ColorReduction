@@ -13,17 +13,19 @@ using namespace cv;
 
 /* Global Variables */
 
-Mat lut;
-uchar *reduction = NULL; // Reduction LUT
+cv::Mat lut;
+ 
 
 
-void colorReduction(const cv::Mat& src, cv::Mat& dst, int div = 2) {
-     
-      cv::Mat lut(1,256,CV_8U);
+void colorReduction(const cv::Mat& src, cv::Mat& dst, int div = 1) {
+          
+      if(lut.empty())
+           lut.create(1,256,CV_8U);
 
-      for (int i=0; i<256; i++) {
-
-        lut.at<uchar>(i)= i/div*div + div/2;
+      uchar* rdata = reinterpret_cast<uchar*>(lut.data);
+      
+      for (int i = 0; i<256; i++) {
+          *rdata++ = i/div*div + div >> 1;
       }
      
       cv::LUT( src, lut, dst);
@@ -71,7 +73,7 @@ JNIEXPORT void JNICALL Java_com_cabatuan_colorreduction_MainActivity_process
    
     t = getTickCount();   
     
-    colorReduction(srcBGR, srcBGR, reductionBy);
+    colorReduction(srcBGR, srcBGR, reductionBy); // 4.19 ms
     
     LOGI("colorReduction took %0.2f ms.", 1000*((float)getTickCount() - t)/getTickFrequency());
     
